@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mensagens Recebidas</title>
+  <link rel="stylesheet" href="css/default.css">
+  <script src="js/jquery-3.6.4.min.js"></script>
+  <script src="js/api.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div id="title">
+        <h2>Mensagens Recebidas</h2>
+      </div>
+      <nav>
+        <ul class="navmenu">
+          <li><a href="index.html">Página inicial</a></li>
+          <li><a href="aluguel.html">Aluguel de iates</a></li>
+          <li><a href="destinos.html">Destinos</a></li>
+          <li><a href="admin.html">Administração</a></li>
+          <li><a href="contato.html">Contato</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <div class="pagtitle">
+        <h2>Mensagens Recebidas</h2>
+      </div>
+      <div id="mensagensWrapper" style="width:100%;max-width:900px;margin:0 auto 30px auto;overflow-x:auto;">
+        <div id="mensagensContainer" style="min-width:600px;"></div>
+      </div>
+    </main>
+  </div>
+  <footer>
+    <p>© 2023 por Luxo aluguel de iates</p>
+  </footer>
+  <style>
+    .msg-table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 8px #0001;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .msg-table th, .msg-table td {
+      padding: 10px 6px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      word-break: break-word;
+      max-width: 220px;
+      vertical-align: middle;
+    }
+    .msg-table th {
+      background: var(--darkblue);
+      color: #fff;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.95em;
+    }
+    .msg-table tr:last-child td {
+      border-bottom: none;
+    }
+    .msg-table tr:hover {
+      background: #f5faff;
+    }
+    .msg-btn {
+      background: var(--lightblue);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.85em;
+      cursor: pointer;
+      transition: background 0.2s;
+      min-width: 80px;
+      max-width: 120px;
+      white-space: normal;
+      word-break: break-word;
+    }
+    .msg-btn:hover {
+      background: var(--darkblue);
+    }
+    .acao-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .msg-table td.acao {
+      max-width: 140px;
+    }
+    @media (max-width: 980px) {
+      #mensagensWrapper { max-width: 98vw; }
+      .msg-table th, .msg-table td { padding: 6px 2px; font-size: 0.95em; }
+      .msg-btn { min-width: 60px; font-size: 0.8em; }
+      .msg-table td.acao { max-width: 90px; }
+    }
+  </style>
+  <script>
+    function carregarMensagens() {
+      var mensagens = obterMensagens();
+      var visualizadas = JSON.parse(localStorage.getItem('mensagensVisualizadas') || '[]');
+      var container = document.getElementById('mensagensContainer');
+      if (!mensagens || mensagens.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#888;font-size:1.1em;">Nenhuma mensagem recebida.</p>';
+        return;
+      }
+      var tabela = '<table class="msg-table">';
+      tabela += '<thead><tr><th>Data e Hora</th><th>Nome</th><th>E-mail</th><th>Mensagem</th><th style="text-align:center;">Ações</th></tr></thead><tbody>';
+      mensagens.forEach(function(msg, idx) {
+        var idMsg = msg.id || idx;
+        var visualizada = visualizadas.includes(idMsg);
+        var style = visualizada ? 'font-weight:normal;' : 'font-weight:bold;';
+        var dataHora = msg.dataHora ? new Date(msg.dataHora).toLocaleString('pt-BR') : 'N/A';
+        tabela += '<tr id="msg-row-' + idMsg + '">' +
+          '<td style="'+style+'">' + dataHora + '</td>' +
+          '<td style="'+style+'">' + msg.nome + '</td>' +
+          '<td style="'+style+'">' + msg.email + '</td>' +
+          '<td style="'+style+'">' + msg.mensagem + '</td>' +
+          '<td class="acao">' +
+            '<div class="acao-buttons">' +
+              (visualizada
+                ? '<span style="color:var(--ocher);font-size:0.95em;">Visualizada</span>'
+                : '<button class="msg-btn" onclick="confirmarVisualizar(\'' + idMsg + '\')">Visualizar</button>') +
+              '<button class="msg-btn" style="background:#e74c3c;" onclick="confirmarExcluir(\'' + idMsg + '\')">Excluir</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      });
+      tabela += '</tbody></table>';
+      container.innerHTML = tabela;
+    }
+
+    function confirmarVisualizar(idMsg) {
+      if (confirm('Deseja marcar esta mensagem como visualizada?')) {
+        marcarVisualizada(idMsg);
+      }
+    }
+
+    function marcarVisualizada(idMsg) {
+      var visualizadas = JSON.parse(localStorage.getItem('mensagensVisualizadas') || '[]');
+      if (!visualizadas.includes(idMsg)) {
+        visualizadas.push(idMsg);
+        localStorage.setItem('mensagensVisualizadas', JSON.stringify(visualizadas));
+      }
+      
+      var row = document.getElementById('msg-row-' + idMsg);
+      if (row) {
+        var cells = row.getElementsByTagName('td');
+        for (var i = 0; i < cells.length - 1; i++) { // Itera sobre as células de dados, exceto a de ações
+          cells[i].style.fontWeight = 'normal';
+        }
+        var acaoCell = row.querySelector('.acao .acao-buttons');
+        if (acaoCell) {
+          acaoCell.innerHTML = '<span style="color:var(--ocher);font-size:0.95em;">Visualizada</span>' + 
+                               '<button class="msg-btn" style="background:#e74c3c;" onclick="confirmarExcluir(\'' + idMsg + '\')">Excluir</button>';
+        }
+      }
+    }
+
+    function confirmarExcluir(idMsg) {
+      if (confirm('Tem certeza que deseja excluir esta mensagem?')) {
+        excluirMensagem(idMsg);
+      }
+    }
+
+    function excluirMensagem(idMsg) {
+      // Busca a mensagem pelo id para obter o objeto completo
+      var mensagens = obterMensagens();
+      var msg = mensagens.find(function(m, idx) { return (m.id || idx) == idMsg; });
+      if (!msg || !msg.id) {
+        alert('Não foi possível excluir esta mensagem.');
+        return;
+      }
+      $.ajax({
+        url: 'https://app-p2-js-c88e9128234a.herokuapp.com/mensagens/' + msg.id,
+        method: 'DELETE',
+        success: function() {
+          // Remove também do localStorage se estava marcada como visualizada
+          var visualizadas = JSON.parse(localStorage.getItem('mensagensVisualizadas') || '[]');
+          var idx = visualizadas.indexOf(msg.id);
+          if (idx !== -1) {
+            visualizadas.splice(idx, 1);
+            localStorage.setItem('mensagensVisualizadas', JSON.stringify(visualizadas));
+          }
+          carregarMensagens();
+        },
+        error: function() {
+          alert('Erro ao excluir a mensagem.');
+        }
+      });
+    }
+
+    window.onload = carregarMensagens;
+  </script>
+</body>
+</html>

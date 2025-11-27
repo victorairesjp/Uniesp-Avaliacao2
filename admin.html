@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Login</title>
+  <link rel="stylesheet" href="css/default.css">
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div id="title">
+        <h2>Área Administrativa</h2>
+      </div>
+      <nav>
+        <ul class="navmenu">
+          <li><a href="index.html">Página inicial</a></li>
+          <li><a href="aluguel.html">Aluguel de iates</a></li>
+          <li><a href="destinos.html">Destinos</a></li>
+          <li><a href="admin.html" class="accent">Administração</a></li>
+          <li><a href="contato.html">Contato</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <form id="loginForm" style="max-width:400px; margin:30px auto 0; padding:20px 20px 10px 20px; background:white; border-radius:8px; box-shadow:0 2px 8px #0001;">
+        <div class="entry">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" style="width:100%;padding:5px;margin-top:3px;outline:0;border:0;border-bottom:1px solid;font-family:var(--pagefont);" required />
+        </div>
+        <div class="entry">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" style="width:100%;padding:5px;margin-top:3px;outline:0;border:0;border-bottom:1px solid;font-family:var(--pagefont);" required />
+        </div>
+        <div class="buttons">
+          <button class="button" type="submit" style="width:100%;margin-top:10px;">Entrar</button>
+        </div>
+        <div id="msgErro" style="color:red; margin-top:10px; text-align:center;"></div>
+      </form>
+    </main>
+  </div>
+  <script src="js/jquery-3.6.4.min.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('email').value;
+      var senha = document.getElementById('senha').value;
+      var objLoginSenha = {
+        email: email,
+        senha: senha
+      };
+      var valido = validarUsuario(objLoginSenha);
+      if (valido === true || valido === 'true') {
+        window.location.href = 'mensagens.html';
+      } else {
+        document.getElementById('msgErro').textContent = 'E-mail e Senha inválidos';
+      }
+    });
+  </script>
+</body>
+</html>
